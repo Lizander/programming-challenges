@@ -2,6 +2,8 @@
 #Kevin Lizander
 #kevin9075@gmail.com
 #reddit challenge: https://redd.it/7d4yoe
+require 'matrix'
+require 'byebug'
 
 def help(input)
   #TODO doesn't output any of the options
@@ -31,10 +33,8 @@ def get_input(string)
     help(string.join("").chomp)
   else
     string.each_with_index do |line, index|
-      $mine[index] = []
-      $mine[index] << line.chars[0...-1]
+      $mine[index] = line.chars[0...-1]
     end
-    return $mine.to_s
   end
 end
 
@@ -48,36 +48,40 @@ def calculate_path(input)
   commands = input.chars
   robot_path = []
   commands.each do |action|
-    case action.upcase!
+    case action.upcase
     when "N"
-      robot_path << [1, 0]
-    when "S"
       robot_path << [-1, 0]
+    when "S"
+      robot_path << [1, 0]
     when "E"
-      robot_path << [0, -1]
-    when "O"
       robot_path << [0, 1]
+    when "O"
+      robot_path << [0, -1]
     when "-"
       break
     end
   end
-  robot_row = $mine.find_index { |arr| arr.include?("M") }
-  #TODO check nil error
-  robot_col = $mine[robot_row].find_index { |arr| arr.include?("M") }
-  robot_pos = [robot_row, robot_col]
+  robot_pos = Matrix[*$mine].index("M")
+  old_robot_pos = robot_pos
   robot_path.each do |move|
+    old_robot_pos = robot_pos
     robot_pos[0] += move[0]
     robot_pos[1] += move[1]
-    case $mine[robot_pos[0]][robot_pos[1]]
+    events = ""
+    case $mine[robot_pos.first][robot_pos.last]
     when "+"
-      puts "The robot hit a wall"
+      events = "The robot hit a wall\n"
+      $mine[robot_pos.first][robot_pos.last] = "#"
     when "*"
-      puts "The robot hit a bomb"
+      events = "The robot hit a bomb\n"
+      $mine[robot_pos.first][robot_pos.last] = "#"
     when "0"
-      puts "The robot is safe"
+      $mine[robot_pos.first][robot_pos.last] = "-"
     when " "
-      puts "The robot is out"
+      events = "The robot made it out\n"
     end
+    show_minefield
+    puts events
   end
 end
 
